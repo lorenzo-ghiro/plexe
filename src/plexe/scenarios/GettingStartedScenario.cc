@@ -33,7 +33,7 @@ void GettingStartedScenario::initialize(int stage)
 
     if (stage == 0)
         // get pointer to application
-        appl = FindModule<BaseApp*>::findSubModule(getParentModule());
+        appl = FindModule<GettingStartedApp*>::findSubModule(getParentModule());
 
     if (stage == 2) {
         // average speed
@@ -56,8 +56,7 @@ void GettingStartedScenario::initialize(int stage)
                 startBreaking = new cMessage("Start Breaking now!");
                 checkDistance = new cMessage("Check Distance now!");
 
-                // ...then change Color and schedule Break operation
-                traciVehicle->setColor(TraCIColor(100, 100, 100, 255));
+                // ...then schedule Break operation
                 scheduleAt(10, startBreaking);
             }
         }
@@ -70,7 +69,7 @@ void GettingStartedScenario::handleMessage(cMessage* msg)
     if (msg == startBreaking) {
         // Increase CACC Constant Spacing (set it to 15m)
         plexeTraciVehicle->setCACCConstantSpacing(15.0);
-        traciVehicle->setColor(TraCIColor(150, 150, 150, 255));
+        traciVehicle->setColor(TraCIColor(100, 100, 100, 255));
         // then start checking when we reach that 15m distance
         scheduleAt(simTime() + 0.1, checkDistance);
 
@@ -83,9 +82,12 @@ void GettingStartedScenario::handleMessage(cMessage* msg)
 
         if (distance > 14.9) {
             // We are almost at correct distance! Turn to ACC (i.e., abandon platoon...)
-            plexeTraciVehicle->setACCHeadwayTime(1.2);
             plexeTraciVehicle->setActiveController(ACC);
+            plexeTraciVehicle->setACCHeadwayTime(1.2);
             traciVehicle->setColor(TraCIColor(200, 200, 200, 255));
+
+            // send abandon Platoon message to leader
+            appl->sendAbandonMessage();
         }
         else {
             scheduleAt(simTime() + 0.1, checkDistance);

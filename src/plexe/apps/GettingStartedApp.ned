@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2018-2021 Julian Heinovski <julian.heinovski@ccs-labs.org>
+// Copyright (C) 2012-2021 Michele Segata <segata@ccs-labs.org>
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 //
@@ -18,35 +18,19 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SIMPLESCENARIO_H_
-#define SIMPLESCENARIO_H_
+package org.car2x.plexe.apps;
 
-#include "plexe/scenarios/BaseScenario.h"
-#include "plexe/apps/GettingStartedApp.h"
+import org.car2x.plexe.apps.BaseApp;
 
-namespace plexe {
-
-class GettingStartedScenario : public BaseScenario {
-
-protected:
-    // leader average speed
-    double leaderSpeed;
-    // application layer, used to stop the simulation
-    GettingStartedApp* appl;
-
-private:
-    cMessage* startBreaking;
-    cMessage* checkDistance;
-
-public:
-    virtual void initialize(int stage) override;
-    virtual void handleMessage(cMessage* msg) override;
-    virtual ~GettingStartedScenario();
-    GettingStartedScenario()
-        : leaderSpeed(0)
-        , appl(nullptr){};
-};
-
-} // namespace plexe
-
-#endif
+simple GettingStartedApp like BaseApp
+{
+    parameters:
+        int headerLength @unit("bit") = default(0 bit);
+        @display("i=block/app2");
+        @class(plexe::GettingStartedApp);
+    gates:
+        input lowerLayerIn;
+        output lowerLayerOut;
+        input lowerControlIn;
+        output lowerControlOut;
+}
