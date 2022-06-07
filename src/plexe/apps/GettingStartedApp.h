@@ -18,8 +18,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SIMPLEPLATOONINGAPP_H_
-#define SIMPLEPLATOONINGAPP_H_
+#pragma once
 
 #include "plexe/apps/BaseApp.h"
 #include "plexe/scenarios/BaseScenario.h"
@@ -55,4 +54,3 @@ private:
 
 } // namespace plexe
 
-#endif /* SIMPLEPLATOONINGAPP_H_ */

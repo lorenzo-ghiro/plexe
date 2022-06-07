@@ -17,9 +17,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-
-#ifndef SIMPLESCENARIO_H_
-#define SIMPLESCENARIO_H_
+#pragma once
 
 #include "plexe/scenarios/BaseScenario.h"
 #include "plexe/apps/GettingStartedApp.h"
@@ -49,4 +47,3 @@ public:
 
 } // namespace plexe
 
-#endif

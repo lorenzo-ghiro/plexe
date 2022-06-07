@@ -78,7 +78,7 @@ void GettingStartedScenario::handleMessage(cMessage* msg)
         // Checking current distance with radar
         double distance = nan("nan"), relSpeed = nan("nan");
         plexeTraciVehicle->getRadarMeasurements(distance, relSpeed);
-        std::cout << "LEAVING VEHICLE now at: " << distance << " meters" << endl;
+        LOG << "LEAVING VEHICLE now at: " << distance << " meters" << endl;
 
         if (distance > 14.9) {
             // We are almost at correct distance! Turn to ACC (i.e., abandon platoon...)

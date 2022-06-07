@@ -131,24 +131,13 @@ void GettingStartedApp::handleAbandonPlatoon(const AbandonPlatoon* msg)
     // Changing platoon Formation...
     std::vector<int> formation = positionHelper->getPlatoonFormation();
 
-    std::cout << "Formation BEFORE\n";
-    for (int i= 0; i < formation.size(); i++) {
-        std::cout << formation[i] << " ";
-    }
-
     // Removing the vehicle that abandoned the platoon
     formation.pop_back();
     positionHelper->setPlatoonFormation(formation);
 
-    std::cout << "\nFormation AFTER\n";
-    for (int i= 0; i < formation.size(); i++) {
-        std::cout << formation[i] << " ";
-    }
-    std::cout << "\n";
-
     char text[250];
     sprintf(text, "LEADER[%d]: I'm removing v<%d> from platoon<%d>\n", leaderID, leaverID, platoonID);
-    std::cout << text << endl;
+    LOG << text << endl;
     getSimulation()->getActiveEnvir()->alert(text);
 
     sendNewFormationToFollowers(formation);
@@ -160,20 +149,17 @@ void GettingStartedApp::handleNewFormation(const NewFormation* msg)
     for (int i = 0; i < msg->getPlatoonFormationArraySize(); i++)
         newFormation.push_back(msg->getPlatoonFormation(i));
 
-    char formationString[200];
-    strcpy(formationString, "[ ");
+    std::string formationString = "[ ";
     for (int i = 0; i < newFormation.size(); i++) {
-        strcat(formationString, std::to_string(newFormation[i]).c_str());
-        strcat(formationString, " ");
+        formationString += std::to_string(newFormation[i]) + " ";
     }
-    strcat(formationString, "]");
+    formationString += "]";
 
     char text[250];
-    sprintf(text, "v<%d> got newFormation = %s\n", positionHelper->getId(), formationString);
+    sprintf(text, "v<%d> got newFormation = %s\n", positionHelper->getId(), formationString.c_str());
     getSimulation()->getActiveEnvir()->alert(text);
 
     positionHelper->setPlatoonFormation(newFormation);
-
 }
 
 void GettingStartedApp::handleLowerMsg(cMessage* msg)
