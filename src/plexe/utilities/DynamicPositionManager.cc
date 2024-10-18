@@ -121,12 +121,19 @@ int DynamicPositionManager::getPlatoonId(int vehicleId) const
 
 std::vector<int> DynamicPositionManager::getPlatoonFormation(int vehicleId) const
 {
-    auto m = platoons.find(getPlatoonId(vehicleId))->second;
     std::vector<int> formation;
-    // we do not need to sort the vehicles by their position,
-    // since the map<pos, id> is sorted by default by its key (i.e. pos)
-    formation.resize(m.size());
-    std::transform(m.begin(), m.end(), formation.begin(), [](const decltype(m)::value_type& p) { return p.second; });
+    int platoonId = getPlatoonId(vehicleId);
+    if (platoonId < 0) {
+        // the formation is the vehicle itself
+        formation.push_back(vehicleId);
+    }
+    else {
+        auto m = platoons.find(platoonId)->second;
+        // we do not need to sort the vehicles by their position,
+        // since the map<pos, id> is sorted by default by its key (i.e. pos)
+        formation.resize(m.size());
+        std::transform(m.begin(), m.end(), formation.begin(), [](const decltype(m)::value_type& p) { return p.second; });
+    }
     return formation;
 }
 

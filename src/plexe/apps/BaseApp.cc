@@ -156,15 +156,8 @@ void BaseApp::handleSelfMsg(cMessage* msg)
 void BaseApp::onPlatoonBeacon(const PlatooningBeacon* pb)
 {
     if (positionHelper->isInSamePlatoon(pb->getVehicleId())) {
-        // if the message comes from the leader
-        if (pb->getVehicleId() == positionHelper->getLeaderId()) {
-            plexeTraciVehicle->setLeaderVehicleData(pb->getControllerAcceleration(), pb->getAcceleration(), pb->getSpeed(), pb->getPositionX(), pb->getPositionY(), pb->getTime());
-        }
-        // if the message comes from the vehicle in front
-        if (pb->getVehicleId() == positionHelper->getFrontId()) {
-            plexeTraciVehicle->setFrontVehicleData(pb->getControllerAcceleration(), pb->getAcceleration(), pb->getSpeed(), pb->getPositionX(), pb->getPositionY(), pb->getTime());
-        }
-        // send data about every vehicle to the CACC. this is needed by the consensus controller
+        // send data about every vehicle to the CACC controllers
+        // controllers will then pick the data of vehicles they are interested in
         struct VEHICLE_DATA vehicleData;
         vehicleData.index = positionHelper->getMemberPosition(pb->getVehicleId());
         vehicleData.acceleration = pb->getAcceleration();
@@ -177,7 +170,7 @@ void BaseApp::onPlatoonBeacon(const PlatooningBeacon* pb)
         vehicleData.speedX = pb->getSpeedX();
         vehicleData.speedY = pb->getSpeedY();
         vehicleData.angle = pb->getAngle();
-        // send information to CACC
+        // send information to CACC controllers
         plexeTraciVehicle->setVehicleData(&vehicleData);
     }
     delete pb;

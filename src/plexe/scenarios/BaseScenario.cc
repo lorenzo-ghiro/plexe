@@ -76,6 +76,7 @@ void BaseScenario::initialize(int stage)
         plexeTraci = plexe->getCommandInterface();
         plexeTraciVehicle.reset(new traci::CommandInterface::Vehicle(plexeTraci, mobility->getExternalId()));
         positionHelper = FindModule<BasePositionHelper*>::findSubModule(getParentModule());
+        plexeTraciVehicle->setPlatoonFormation("vtypeauto", positionHelper->getPlatoonFormation());
     }
     else if (stage == 2) {
         initializeControllers();
