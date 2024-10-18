@@ -115,26 +115,6 @@ std::vector<CommandInterface::Vehicle::neighbor> CommandInterface::Vehicle::getN
     return neighbors;
 }
 
-void CommandInterface::Vehicle::setLeaderVehicleData(double controllerAcceleration, double acceleration, double speed, double positionX, double positionY, double time)
-{
-    ParBuffer buf;
-    buf << speed << acceleration << positionX << positionY << time << controllerAcceleration;
-    veinsVehicle().setParameter(PAR_LEADER_SPEED_AND_ACCELERATION, buf.str());
-}
-
-void CommandInterface::Vehicle::setPlatoonLeaderData(double speed, double acceleration, double positionX, double positionY, double time)
-{
-    std::cout << "setPlatoonLeaderData() is deprecated and will be removed. Please use setLeaderVehicleData()\n";
-    setLeaderVehicleData(acceleration, acceleration, speed, positionX, positionY, time);
-}
-
-void CommandInterface::Vehicle::setFrontVehicleData(double controllerAcceleration, double acceleration, double speed, double positionX, double positionY, double time)
-{
-    ParBuffer buf;
-    buf << speed << acceleration << positionX << positionY << time << controllerAcceleration;
-    veinsVehicle().setParameter(PAR_PRECEDING_SPEED_AND_ACCELERATION, buf.str());
-}
-
 void CommandInterface::Vehicle::getVehicleData(double& speed, double& acceleration, double& controllerAcceleration, double& positionX, double& positionY, double& time)
 {
     std::string v;
@@ -269,12 +249,6 @@ void CommandInterface::Vehicle::setFrontVehicleFakeData(double controllerAcceler
     veinsVehicle().setParameter(PAR_FRONT_FAKE_DATA, buf.str());
 }
 
-void CommandInterface::Vehicle::setPrecedingVehicleData(double speed, double acceleration, double positionX, double positionY, double time)
-{
-    std::cout << "setPrecedingVehicleData() is deprecated and will be removed. Please use setFrontVehicleData()\n";
-    setFrontVehicleData(acceleration, acceleration, speed, positionX, positionY, time);
-}
-
 void CommandInterface::Vehicle::setFrontFakeData(double frontDistance, double frontSpeed, double frontAcceleration)
 {
     std::cout << "setFrontFakeData() is deprecated and will be removed. Please use setFrontVehicleFakeData()\n";
@@ -350,16 +324,15 @@ void CommandInterface::Vehicle::usePrediction(bool enable)
     veinsVehicle().setParameter(PAR_USE_PREDICTION, enable ? 1 : 0);
 }
 
-void CommandInterface::Vehicle::addPlatoonMember(std::string memberId, int position)
+void CommandInterface::Vehicle::setPlatoonFormation(std::string vtype, std::vector<int> formation)
 {
+    // SUMO requires num of platoMembers as first param,
+    //then the list of vehIds that we must build as concantenation with vtype
     ParBuffer inBuf;
-    inBuf << memberId << position;
-    veinsVehicle().setParameter(PAR_ADD_MEMBER, inBuf.str());
-}
-
-void CommandInterface::Vehicle::removePlatoonMember(std::string memberId)
-{
-    veinsVehicle().setParameter(PAR_REMOVE_MEMBER, memberId);
+    inBuf << formation.size();
+    for(auto member : formation)
+      inBuf << vtype + "." +  std::to_string(member);
+    veinsVehicle().setParameter(PAR_SET_PLATOON_FORMATION, inBuf.str());
 }
 
 void CommandInterface::Vehicle::enableAutoLaneChanging(bool enable)

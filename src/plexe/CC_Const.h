@@ -193,9 +193,8 @@ struct VEHICLE_DATA {
 // enabling/disabling data prediction
 #define PAR_USE_PREDICTION (parameter_prefix + "ccup")
 
-// add/remove members from own platoon
-#define PAR_ADD_MEMBER (parameter_prefix + "ccam")
-#define PAR_REMOVE_MEMBER (parameter_prefix + "ccrm")
+// set formation (inform SUMO about platoon-formation TraCI-client-side)
+#define PAR_SET_PLATOON_FORMATION (parameter_prefix + "ccspf")
 
 // let the leader automatically change lane for the whole platoon if there is a speed advantage
 #define PAR_ENABLE_AUTO_LANE_CHANGE (parameter_prefix + "ccalc")

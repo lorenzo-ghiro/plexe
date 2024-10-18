@@ -60,18 +60,6 @@ public:
         std::vector<neighbor> getNeighbors(uint8_t lateralDirection, uint8_t longitudinalDirection, uint8_t blocking = 0);
 
         /**
-         * Sets the data about the leader of the platoon. This data is usually received
-         * by means of wireless communications
-         */
-        void setLeaderVehicleData(double controllerAcceleration, double acceleration, double speed, double positionX, double positionY, double time);
-        void setPlatoonLeaderData(double leaderSpeed, double leaderAcceleration, double positionX, double positionY, double time);
-        /**
-         * Sets the data about the preceding vehicle in the platoon. This data is usually
-         * received by means of wireless communications
-         */
-        void setFrontVehicleData(double controllerAcceleration, double acceleration, double speed, double positionX, double positionY, double time);
-        void setPrecedingVehicleData(double speed, double acceleration, double positionX, double positionY, double time);
-        /**
          * Gets the data about a vehicle. This can be used by a platoon leader in order to query for the acceleration
          * before sending the data to the followers
          * This method is deprecated. getVehicleData with a struct parameter should be used instead
@@ -255,21 +243,11 @@ public:
         void usePrediction(bool enable);
 
         /**
-         * Adds a platoon member to this vehicle, usually considered to be the
-         * leader. Members are used to perform coordinated, whole-platoon lane
-         * changes
-         * @param memberId: sumo id of the member being added
-         * @param position: position (0-based) of the vehicle
-         */
-        void addPlatoonMember(std::string memberId, int position);
-
-        /**
-         * Removes a platoon member from this vehicle, usually considered to be the
-         * leader. Members are used to perform coordinated, whole-platoon lane
-         * changes
-         * @param memberId: sumo id of the member being removed
-         */
-        void removePlatoonMember(std::string memberId);
+        * Transfer information about the platoon-formation to SUMO
+        * @param vtype: sumo vechile type for vehicle beloing to the platoon
+        * @param formation: the current platoon formation as list of vehIds (IDs are int)
+        */
+        void setPlatoonFormation(std::string vtype, std::vector<int> formation);
 
         /**
          * Enables/disables automatic, coordinated, whole-platoon lane changes.
