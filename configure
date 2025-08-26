@@ -25,7 +25,7 @@
 """
 Creates Makefile(s) for building this project.
 """
-from os import mkdir
+from os import mkdir, environ
 from os.path import join, isdir
 import subprocess
 import sys
@@ -34,14 +34,32 @@ sys.path.insert(0, "./src/scripts/")
 from library import Library, LibraryChecker
 
 veins = Library(name="Veins", library="veins", default_path="../veins",
-                versions=["5.1", "5.2"], source_folder="src/veins", lib_folder="src",
+                versions=["5.1", "5.2", "5.3"], source_folder="src/veins", lib_folder="src",
                 images_folder="images", version_script="print-veins-version")
 
 libraries = LibraryChecker()
 libraries.add_lib(veins)
 
 # Start with default flags
-makemake_flags = ["-f", "--deep", "--no-deep-includes", "--make-so", "-I", ".", "-o", "plexe", "-O", "out", "-p", "PLEXE"]
+makemake_flags = ["-f", "--deep", "--make-so", "-I", ".", "-o", "plexe", "-O", "out", "-p", "PLEXE"]
+
+# adding Python and Pybind11
+try:
+    pybind11 = environ.get('PYBIND')
+    pybind11_include = f"{pybind11}/include" # path for pybind11
+    py_include = environ.get('PY_INCLUDE')
+    pybind11_flags = [f"-I{py_include}", f"-I{pybind11_include}"]
+
+    py_conf = environ.get('PY_CONFIG')
+    py_lib_flags = [f"-L{py_conf}", "-lpython3.12"]
+
+    makemake_flags += pybind11_flags
+    makemake_flags += py_lib_flags
+
+    print("Python/Pybind11 flags added successfully")
+except Exception as e:
+    print("Failed to obtain Python/Pybind11 flags:", e)
+    print("Proceeding without them.")
 
 run_libs = []
 run_neds = []
