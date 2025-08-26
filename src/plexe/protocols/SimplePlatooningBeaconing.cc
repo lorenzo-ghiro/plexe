@@ -22,7 +22,7 @@
 
 namespace plexe {
 
-Define_Module(SimplePlatooningBeaconing)
+Define_Module(SimplePlatooningBeaconing);
 
 void SimplePlatooningBeaconing::initialize(int stage)
 {
@@ -43,8 +43,47 @@ void SimplePlatooningBeaconing::handleSelfMsg(cMessage* msg)
     BaseProtocol::handleSelfMsg(msg);
 
     if (msg == sendBeacon) {
-        sendPlatooningMessage(-1);
-        scheduleAt(simTime() + beaconingInterval, sendBeacon);
+        if (!onAttack){
+            // not during an attack
+            sendPlatooningMessage(-1);
+            scheduleAt(simTime() + beaconingInterval, sendBeacon);
+        } else if (strcmp(attackType, "dataReplay") == 0) {
+            // attack of type replay
+            sendReplayMessage(-1);
+            scheduleAt(simTime() + beaconingInterval, sendBeacon);
+        } else if (strcmp(attackType, "disruptive") == 0) {
+            // attack of type disruptive
+            sendDisruptiveMessage(-1);
+            scheduleAt(simTime() + beaconingInterval, sendBeacon);
+        } else {
+            // generate random seed for the random attacks
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            if(strcmp(attackType, "randomPos") == 0){
+                std::uniform_int_distribution<> distr(lower_bound_random, upper_bound_random);
+
+                posx = distr(gen);
+                posy = distr(gen);
+            }
+            if(strcmp(attackType, "randomOffset") == 0){
+                std::uniform_int_distribution<> distr(lower_bound_offset, upper_bound_offset);
+
+                offset = distr(gen);
+            }
+            if(strcmp(attackType, "randomSpeed") == 0){
+                std::uniform_int_distribution<> distr(lower_bound_random_speed, upper_bound_random_speed);
+
+                spdx = distr(gen);
+                spdy = distr(gen);
+            }
+            if(strcmp(attackType, "randomOffsetSpeed") == 0){
+                std::uniform_int_distribution<> distr(lower_bound_offset_speed, upper_bound_offset_speed);
+
+                offset = distr(gen);
+            }
+            sendMisbehaviorMessage(-1);
+            scheduleAt(simTime() + beaconingInterval, sendBeacon);
+        }
     }
 }
 

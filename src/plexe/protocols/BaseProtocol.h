@@ -95,6 +95,8 @@ protected:
     int priority;
     // packet size of the platooning message
     int packetSize;
+    // include the misbehaviour warning in beacon
+    bool warning = false;
 
     // input/output gates from/to upper layer
     int upperControlIn, upperControlOut, lowerLayerIn, lowerLayerOut;
@@ -102,6 +104,32 @@ protected:
     int minUpperId, maxUpperId, minUpperControlId, maxUpperControlId;
     // id range of lower radio gates
     int minRadioId, maxRadioId;
+
+    // define when to create and attack to handle the message
+    bool onAttack;
+    // define the type of attack for the current vehicle
+    const char* attackType;
+
+    // misbehavior positions to be transmitted
+    double posx;
+    double posy;
+
+    // misbehavior offset defined
+    double offset;
+
+    // misbehavior speeds to be transmitted
+    double spdx;
+    double spdy;
+
+    // acceleration value for the eventual stop attack
+    double acl;
+
+    // data saved to be replayed along with the index selected
+    struct VEHICLE_DATA replayData;
+    int replayIndex;
+
+    // data saved to be replayed along with a random index
+    struct VEHICLE_DATA disruptiveData;
 
     // registered upper layer applications. this is a mapping between
     // beacon id inside packets coming from upper layer and the gate they
@@ -159,7 +187,26 @@ protected:
      */
     virtual void sendPlatooningMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces = PlexeRadioInterfaces::ALL);
 
+    /**
+     * Sending a platooning message with all information about the car but the pos misbehaviour
+     */
+    void sendMisbehaviorMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces = PlexeRadioInterfaces::ALL);
+
+    /**
+     * Sending a platooning message of replay kind, given the replayBeacon
+     */
+    void sendReplayMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces = PlexeRadioInterfaces::ALL);
+
+    /**
+     * Sending a platooning message of replay kind, from random vehicles
+     */
+    void sendDisruptiveMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces = PlexeRadioInterfaces::ALL);
+
+    virtual std::unique_ptr<BaseFrame1609_4> createMisbehaviorBeacon(int destinationAddress);
+
     virtual std::unique_ptr<BaseFrame1609_4> createBeacon(int destinationAddress);
+
+    virtual std::unique_ptr<BaseFrame1609_4> createReplayBeacon(int destinationAddress, VEHICLE_DATA attackData);
 
     /**
      * This method must be overridden by subclasses to take decisions
@@ -217,7 +264,15 @@ public:
     {
         sendBeacon = nullptr;
         recordData = nullptr;
+        replayIndex = -1;
         usedGates = 0;
+        onAttack = false;
+        posx = 0;
+        posy = 0;
+        offset = 0;
+        spdx = 0;
+        spdy = 0;
+        acl = 0;
     }
     virtual ~BaseProtocol();
 
@@ -225,6 +280,17 @@ public:
 
     // register a higher level application by its id
     void registerApplication(int applicationId, InputGate* appInputGate, OutputGate* appOutputGate, ControlInputGate* appControlInputGate, ControlOutputGate* appControlOutputGate);
+
+    // set the warning in sent beacons
+    void setWarning(bool misbehaviour);
+    // set the onAttack variable
+    void activeAttack(const char* type);
+    // set the message to be replayed in case of replay attack
+    void setReplayMessage(const PlatooningBeacon* pb);
+    // set the index to replay in case of data replay attack
+    void setReplayIndex(int index);
+    // set the message to be replayed in case of disruptive attack
+    void setDisruptiveMessage(const PlatooningBeacon* pb);
 };
 
 } // namespace plexe

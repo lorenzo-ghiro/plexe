@@ -22,12 +22,25 @@
 #define SIMPLEPLATOONINGBEACONING_H_
 
 #include "BaseProtocol.h"
+#include <random>
 
 namespace plexe {
 
 class SimplePlatooningBeaconing : public BaseProtocol {
 protected:
     virtual void handleSelfMsg(cMessage* msg);
+
+    // bound selected for the random and offset position
+    double lower_bound_random = 0;
+    double upper_bound_random = 10000;
+    double lower_bound_offset = -10;
+    double upper_bound_offset = 10;
+
+    // bound selected for the random and offset speed
+    double lower_bound_random_speed = -200;
+    double upper_bound_random_speed = 200;
+    double lower_bound_offset_speed = -8;
+    double upper_bound_offset_speed = 8;
 
 public:
     SimplePlatooningBeaconing();

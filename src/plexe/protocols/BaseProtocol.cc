@@ -27,6 +27,8 @@
 #include "plexe/PlexeManager.h"
 #include "plexe/driver/Veins11pRadioDriver.h"
 #include "plexe/messages/PlexeInterfaceControlInfo_m.h"
+#include <cstring> // For strcmp
+#include <string>
 
 using namespace veins;
 
@@ -173,6 +175,124 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress, enum PlexeRadio
     sendTo(createBeacon(destinationAddress).release(), interfaces);
 }
 
+void BaseProtocol::sendMisbehaviorMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces)
+{
+    sendTo(createMisbehaviorBeacon(destinationAddress).release(), interfaces);
+}
+
+void BaseProtocol::sendReplayMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces)
+{
+    sendTo(createReplayBeacon(destinationAddress, replayData).release(), interfaces);
+}
+
+void BaseProtocol::sendDisruptiveMessage(int destinationAddress, enum PlexeRadioInterfaces interfaces)
+{
+    sendTo(createReplayBeacon(destinationAddress, disruptiveData).release(), interfaces);
+}
+
+std::unique_ptr<BaseFrame1609_4> BaseProtocol::createReplayBeacon(int destinationAddress, VEHICLE_DATA attackData)
+{
+    // vehicle's data to be included in the message
+    VEHICLE_DATA data;
+    // get information about the vehicle via traci
+    plexeTraciVehicle->getVehicleData(&data);
+    // create and send beacon
+    auto wsm = veins::make_unique<BaseFrame1609_4>("", BEACON_TYPE);
+    wsm->setRecipientAddress(LAddress::L2BROADCAST());
+    wsm->setChannelNumber(static_cast<int>(Channel::cch));
+    wsm->setUserPriority(priority);
+
+    // create platooning beacon with data about the car
+    PlatooningBeacon* pkt = new PlatooningBeacon();
+    pkt->setControllerAcceleration(attackData.u);
+    pkt->setAcceleration(attackData.acceleration);
+    pkt->setSpeed(attackData.speed);
+    pkt->setVehicleId(myId); // id keep mine
+    pkt->setPositionX(attackData.positionX);
+    pkt->setPositionY(attackData.positionY);
+    pkt->setTime(data.time); // time keep mine
+    pkt->setLength(attackData.length);
+    pkt->setSpeedX(attackData.speedX);
+    pkt->setSpeedY(attackData.speedY);
+    pkt->setAngle(attackData.angle);
+    // this equal
+    pkt->setKind(BEACON_TYPE);
+    pkt->setByteLength(packetSize);
+    pkt->setSequenceNumber(seq_n++);
+    pkt->setWarning(warning);
+
+    wsm->encapsulate(pkt);
+
+    return wsm;
+}
+
+std::unique_ptr<BaseFrame1609_4> BaseProtocol::createMisbehaviorBeacon(int destinationAddress)
+{
+    // vehicle's data to be included in the message
+    VEHICLE_DATA data;
+    // get information about the vehicle via traci
+    plexeTraciVehicle->getVehicleData(&data);
+
+    // create and send beacon
+    auto wsm = veins::make_unique<BaseFrame1609_4>("", BEACON_TYPE);
+    wsm->setRecipientAddress(LAddress::L2BROADCAST());
+    wsm->setChannelNumber(static_cast<int>(Channel::cch));
+    wsm->setUserPriority(priority);
+
+    // create platooning beacon with data about the car
+    PlatooningBeacon* pkt = new PlatooningBeacon();
+
+    pkt->setControllerAcceleration(data.u);
+    if(strcmp(attackType, "eventualStop") == 0){
+    	pkt->setAcceleration(acl);
+    } else {
+    	pkt->setAcceleration(data.acceleration);
+    }
+
+    //pkt->setSpeed(data.speed);
+    pkt->setVehicleId(myId);
+
+    // POSITION MISBEHAVIOR
+    if(strcmp(attackType, "randomOffset") == 0){
+    	pkt->setPositionX(data.positionX + offset);
+    	pkt->setPositionY(data.positionY + offset);
+    } else if (strcmp(attackType, "randomPos") == 0 or strcmp(attackType, "constPos") == 0 or strcmp(attackType, "eventualStop") == 0) {
+    	pkt->setPositionX(posx);
+    	pkt->setPositionY(posy);
+    } else {
+    	pkt->setPositionX(data.positionX);
+    	pkt->setPositionY(data.positionY);
+    }
+    pkt->setTime(data.time);
+    pkt->setLength(length);
+
+    // SPEED MISBEHAVIOR
+    if(strcmp(attackType, "randomOffsetSpeed") == 0){
+    	pkt->setSpeedX(data.speedX + offset);
+    	pkt->setSpeed(data.speed + offset);
+    	pkt->setSpeedY(data.speedY + offset);
+    }  else if (strcmp(attackType, "randomSpeed") == 0 or strcmp(attackType, "constSpeed") == 0 or strcmp(attackType, "eventualStop") == 0) {
+    	pkt->setSpeedX(spdx);
+		pkt->setSpeed(spdx);
+		pkt->setSpeedY(spdy);
+    } else {
+    	pkt->setSpeedX(data.speedX);
+		pkt->setSpeed(data.speed);
+		pkt->setSpeedY(data.speedY);
+    }
+
+    pkt->setAngle(data.angle);
+    pkt->setKind(BEACON_TYPE);
+    pkt->setByteLength(packetSize);
+    pkt->setSequenceNumber(seq_n++);
+
+    pkt->setWarning(warning);
+
+    wsm->encapsulate(pkt);
+
+    return wsm;
+}
+
 void BaseProtocol::sendTo(BaseFrame1609_4* frame, enum PlexeRadioInterfaces interfaces)
 {
     for (auto interface : radioOuts) {
@@ -215,6 +335,7 @@ std::unique_ptr<BaseFrame1609_4> BaseProtocol::createBeacon(int destinationAddre
     pkt->setKind(BEACON_TYPE);
     pkt->setByteLength(packetSize);
     pkt->setSequenceNumber(seq_n++);
+    pkt->setWarning(warning);
 
     wsm->encapsulate(pkt);
 
@@ -388,6 +509,71 @@ void BaseProtocol::registerApplication(int applicationId, InputGate* appInputGat
     }
     // save the mapping in the connection
     apps[applicationId].push_back(AppInOut(upperIn, upperOut, upperCntIn, upperCntOut));
+}
+
+void BaseProtocol::setWarning(bool misbehaviour)
+{
+    warning = misbehaviour;
+}
+
+void BaseProtocol::activeAttack(const char* type)
+{
+    onAttack = true;
+    attackType = type;
+    if(strcmp(type, "constPos") == 0){
+        VEHICLE_DATA data;
+        plexeTraciVehicle->getVehicleData(&data);
+        posx = data.positionX;
+        posy = data.positionY;
+    }
+    if(strcmp(type, "constSpeed") == 0){
+        VEHICLE_DATA data;
+        plexeTraciVehicle->getVehicleData(&data);
+        spdx = data.speedX;
+        spdy = data.speedY;
+    }
+    if(strcmp(type, "eventualStop") == 0){
+        VEHICLE_DATA data;
+        plexeTraciVehicle->getVehicleData(&data);
+        spdx = 0;
+        spdy = 0;
+        posx = 0;
+        posy = 0;
+        acl = 0;
+    }
+}
+
+void BaseProtocol::setReplayIndex(int index)
+{
+    replayIndex = index;
+}
+
+void BaseProtocol::setReplayMessage(const PlatooningBeacon* pb)
+{
+    if (pb->getVehicleId() == replayIndex){
+    	replayData.acceleration = pb->getAcceleration();
+    	replayData.length = pb->getLength();
+    	replayData.positionX = pb->getPositionX();
+    	replayData.positionY = pb->getPositionY();
+    	replayData.speed = pb->getSpeed();
+    	replayData.u = pb->getControllerAcceleration();
+    	replayData.speedX = pb->getSpeedX();
+    	replayData.speedY = pb->getSpeedY();
+    	replayData.angle = pb->getAngle();
+    }
+}
+
+void BaseProtocol::setDisruptiveMessage(const PlatooningBeacon* pb)
+{
+    disruptiveData.acceleration = pb->getAcceleration();
+    disruptiveData.length = pb->getLength();
+    disruptiveData.positionX = pb->getPositionX();
+    disruptiveData.positionY = pb->getPositionY();
+    disruptiveData.speed = pb->getSpeed();
+    disruptiveData.u = pb->getControllerAcceleration();
+    disruptiveData.speedX = pb->getSpeedX();
+    disruptiveData.speedY = pb->getSpeedY();
+    disruptiveData.angle = pb->getAngle();
 }
 
 } // namespace plexe
