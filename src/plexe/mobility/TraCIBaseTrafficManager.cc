@@ -19,12 +19,24 @@
 //
 
 #include "plexe/mobility/TraCIBaseTrafficManager.h"
+#include "plexe/traffic/RingTrafficManager.h"
 
 using namespace veins;
 
 namespace plexe {
 
 Define_Module(TraCIBaseTrafficManager);
+
+void TraCIBaseTrafficManager::printVehicle(struct Vehicle v, std::ostream& out)
+{
+    out << "id: " << v.id << "\n"
+        << "routeId: " << v.routeid << "\n"
+        << "vehicleId: " << v.vehicleId << "\n"
+        << "lane: " << v.lane << "\n"
+        << "position: " << v.position << "\n"
+        << "speed: " << v.speed << "\n";
+    return;
+}
 
 void TraCIBaseTrafficManager::initialize(int stage)
 {
@@ -61,6 +73,37 @@ void TraCIBaseTrafficManager::initialize(int stage)
     }
 }
 
+std::string TraCIBaseTrafficManager::controllerToString(enum ACTIVE_CONTROLLER c)
+{
+    std::string retval = "";
+    switch (c) {
+    case 0:
+        retval = "DRIVER";
+        break;
+    case 1:
+        retval = "ACC";
+        break;
+    case 2:
+        retval = "CACC";
+        break;
+    case 3:
+        retval = "FAKED_CACC";
+        break;
+    case 4:
+        retval = "PLOEG";
+        break;
+    case 5:
+        retval = "CONSENSUS";
+        break;
+    case 6:
+        retval = "FLATBED";
+        break;
+    default:
+        retval = "ERROR";
+    }
+    return retval;
+}
+
 enum ACTIVE_CONTROLLER TraCIBaseTrafficManager::strToController(const char* controller)
 {
     if (strcmp(controller, "ACC") == 0) {
@@ -79,6 +122,7 @@ enum ACTIVE_CONTROLLER TraCIBaseTrafficManager::strToController(const char* cont
         return FLATBED;
     }
     else {
+        std::cout << "passed: " << controller << std::endl;
         throw cRuntimeError("Invalid controller selected");
     }
 }
@@ -169,31 +213,43 @@ void TraCIBaseTrafficManager::loadSumoScenario()
 
 void TraCIBaseTrafficManager::insertVehicles()
 {
+    bool usingRingTrafficManager = false;
+    if (RingTrafficManager* checktf = dynamic_cast<RingTrafficManager*>(this))
+        usingRingTrafficManager = true;
+
     // insert the vehicles in the queue
+    // InsertQueue is organized "by route", this iterator iterates over routes
     for (InsertQueue::iterator i = vehicleInsertQueue.begin(); i != vehicleInsertQueue.end(); ++i) {
         std::string route = routeIds[i->first];
         EV << "process " << route << std::endl;
+        // Iterates over the vehicles belonging to route
         std::deque<struct Vehicle>::iterator vi = i->second.begin();
         while (vi != i->second.end() && i->second.size() != 0) {
             bool suc = false;
             struct Vehicle v = *vi;
             std::string type = vehicleTypeIds[v.id];
             std::stringstream veh;
-            int id = v.vehicleId < 0 ? vehiclesCount[v.id] : v.vehicleId;
-            veh << type << "." << id;
+
+            if (!usingRingTrafficManager)
+                veh << type << "." << vehiclesCount[v.id];
+            else if (usingRingTrafficManager) {
+                // added by Lorenzo for ringtrafficmanger over multiple edges
+                veh << type << "." << v.vehicleId;
+                route = routeIds[v.routeid];
+            }
 
             // do we need to put this vehicle on a particular lane, or can we put it on any?
-
             if (v.lane == -1 && !insertInOrder) {
-
                 // try to insert that into any lane
                 for (unsigned int laneId = 0; !suc && laneId < routeStartLaneIds[route].size(); laneId++) {
-                    EV << "trying to add " << veh.str() << " with " << route << " vehicle type " << type << std::endl;
+                    EV << "(not ordered) trying to add " << veh.str() << " with " << route << " vehicle type " << type << std::endl;
                     suc = commandInterface->addVehicle(veh.str(), type, route, simTime(), v.position, v.speed, laneId);
                     if (suc) break;
                 }
                 if (!suc) {
-                    // if we did not manager to insert a car on any lane, then this route is full and we can just stop
+                    EV << "SUMO COULD NOT INSERT THIS VEHICLE!\n";
+                    printVehicle(v, std::cout);
+                    // if we did not manage to insert a car on any lane, then this route is full and we can just stop
                     // TODO: this is not true if we want to insert a vehicle not at the beginning of the route. fix this
                     break;
                 }
@@ -204,17 +260,19 @@ void TraCIBaseTrafficManager::insertVehicles()
                 }
             }
             else {
-
                 // try to insert into desired lane
-                EV << "trying to add " << veh.str() << " with " << route << " vehicle type " << type << std::endl;
+                EV << "trying to add " << veh.str() << " of type=" << type << ", on route=" << route
+                    << ", on lane=" << v.lane << " with speed=" << v.speed << std::endl;
                 suc = commandInterface->addVehicle(veh.str(), type, route, simTime(), v.position, v.speed, v.lane);
 
                 if (suc) {
-                    EV << "successful inserted " << veh.str() << std::endl;
+                    EV << "successful inserted " << veh.str() << " pos: " << v.position << " routeId: " << v.routeid << std::endl;
                     vi = i->second.erase(vi);
                     vehiclesCount[v.id] = vehiclesCount[v.id] + 1;
                 }
                 else {
+                    EV << "SUMO COULD NOT INSERT THIS VEHICLE!\n";
+                    printVehicle(v, std::cout);
                     if (!insertInOrder) {
                         vi++;
                     }

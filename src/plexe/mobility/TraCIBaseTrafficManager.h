@@ -46,6 +46,7 @@ public:
     }
 
     static enum ACTIVE_CONTROLLER strToController(const char* controller);
+    static std::string controllerToString(enum ACTIVE_CONTROLLER);
 
 private:
     /**
@@ -88,6 +89,7 @@ protected:
 
     struct Vehicle {
         int id; // id of the vehicle in sumo. this is the index of the vehicle type in the array of vehicle types
+        int routeid;
         int lane; // index of the lane where to insert (set to -1 to choose first free)
         float position; // position on the first edge
         float speed; // start speed (-1 for lane speed?)
@@ -105,6 +107,8 @@ private:
 protected:
     void addVehicleToQueue(int routeId, struct Vehicle v);
     void addVehicleToQueue(std::string route, struct Vehicle v);
+
+    void printVehicle(struct Vehicle v, std::ostream& out);
 
     /**
      * Inserts the vehicles which have been put into the queue
