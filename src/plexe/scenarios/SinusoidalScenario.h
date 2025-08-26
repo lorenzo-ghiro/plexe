@@ -22,6 +22,7 @@
 #define SINUSOIDALSCENARIO_H_
 
 #include "plexe/scenarios/BaseScenario.h"
+#include "plexe/apps/BaseApp.h"
 
 namespace plexe {
 
@@ -43,6 +44,8 @@ protected:
     cMessage* changeSpeed;
     // start oscillation time
     SimTime startOscillating;
+    // application layer, used to stop the simulation
+    BaseApp* appl;
 
 public:
     SinusoidalScenario()
@@ -51,6 +54,7 @@ public:
         oscillationAmplitude = 0;
         leaderSpeed = 0;
         nLanes = 0;
+        appl = 0;
         changeSpeed = nullptr;
         startOscillating = SimTime(0);
     }

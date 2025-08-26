@@ -20,6 +20,8 @@
 
 #include "plexe/scenarios/SinusoidalScenario.h"
 
+using namespace veins;
+
 namespace plexe {
 
 Define_Module(SinusoidalScenario);
@@ -29,14 +31,14 @@ void SinusoidalScenario::initialize(int stage)
 
     BaseScenario::initialize(stage);
 
+    if (stage == 0)
+        appl = FindModule<BaseApp*>::findSubModule(getParentModule());
     if (stage == 2) {
         // get the oscillation frequency of the leader as parameter
         leaderOscillationFrequency = par("leaderOscillationFrequency").doubleValue();
         // oscillation amplitude
         oscillationAmplitude = par("oscillationAmplitude").doubleValue() / 3.6;
-        // average speed
-        leaderSpeed = par("leaderSpeed").doubleValue() / 3.6;
-        // number of lanes
+        leaderSpeed = par("leaderSpeed").doubleValueInUnit("mps");
         nLanes = par("nLanes").intValue();
         // start oscillation time
         startOscillating = SimTime(par("startOscillating").doubleValue());

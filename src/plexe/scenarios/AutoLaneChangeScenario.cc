@@ -50,6 +50,7 @@ void AutoLaneChangeScenario::initialize(int stage)
             plexeTraciVehicle->enableAutoFeed(true, ssl.str(), ss.str());
             plexeTraciVehicle->setCruiseControlDesiredSpeed(mobility->getSpeed() + 10);
         }
+        plexeTraciVehicle->setPlatoonFormation(platooningVType, positionHelper->getPlatoonFormation());
     }
 }
 
