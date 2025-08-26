@@ -36,6 +36,7 @@ void DynamicPositionManager::addVehicleToPlatoon(const int vehicleId, VehicleInf
     platoons[info.platoonId][info.position] = vehicleId;
     positions[info.platoonId][vehicleId] = info.position;
     vehToPlatoons[vehicleId] = info.platoonId;
+    vehicleToLeaderPosition[vehicleId] = info.leaderPosition;
     setVehicleInfo(vehicleId, info);
 }
 
@@ -56,6 +57,18 @@ void DynamicPositionManager::removeVehicleFromPlatoon(const int vehicleId)
         pPosition->second.erase(pPosition->second.find(vehicleId));
         vehToPlatoons.erase(pId);
     }
+}
+
+void DynamicPositionManager::printVehicleInfo(VehicleInfo info)
+{
+    std::cout << "CONTROLLER:\t" << info.controller << "\n";
+    std::cout << "distance:\t" << info.distance << "\n";
+    std::cout << "headway:\t" << info.headway << "\n";
+    std::cout << "id:\t" << info.id << "\n";
+    std::cout << "platoonId:\t" << info.platoonId << "\n";
+    std::cout << "position:\t" << info.position << "\n";
+    std::cout << "leaderPosition:\t" << info.leaderPosition << "\n";
+    return;
 }
 
 void DynamicPositionManager::printPlatoons()
@@ -121,12 +134,19 @@ int DynamicPositionManager::getPlatoonId(int vehicleId) const
 
 std::vector<int> DynamicPositionManager::getPlatoonFormation(int vehicleId) const
 {
-    auto m = platoons.find(getPlatoonId(vehicleId))->second;
     std::vector<int> formation;
-    // we do not need to sort the vehicles by their position,
-    // since the map<pos, id> is sorted by default by its key (i.e. pos)
-    formation.resize(m.size());
-    std::transform(m.begin(), m.end(), formation.begin(), [](const decltype(m)::value_type& p) { return p.second; });
+    int platoonId = getPlatoonId(vehicleId);
+    if (platoonId < 0) {
+        // the formation is the vehicle itself
+        formation.push_back(vehicleId);
+    }
+    else {
+        auto m = platoons.find(platoonId)->second;
+        // we do not need to sort the vehicles by their position,
+        // since the map<pos, id> is sorted by default by its key (i.e. pos)
+        formation.resize(m.size());
+        std::transform(m.begin(), m.end(), formation.begin(), [](const decltype(m)::value_type& p) { return p.second; });
+    }
     return formation;
 }
 

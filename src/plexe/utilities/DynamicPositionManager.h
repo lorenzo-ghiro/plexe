@@ -41,6 +41,7 @@ typedef struct {
     int id;
     int platoonId;
     int position;
+    int leaderPosition;
 } VehicleInfo;
 
 class DynamicPositionManager {
@@ -59,6 +60,8 @@ class DynamicPositionManager {
     typedef std::map<int, PlatoonInfo> PlatoonInformation;
     // map from vehicle id to vehicle info
     typedef std::map<int, VehicleInfo> VehicleInformation;
+    // map from vehicle id to leader position (not necessarily position 0!)
+    typedef std::map<int, int> VehicleLeader;
 
 public:
     void addVehicleToPlatoon(const int vehicleId, VehicleInfo info);
@@ -67,6 +70,7 @@ public:
     {
         removeVehicleFromPlatoon(vehicleId);
     }
+    void printVehicleInfo(VehicleInfo info);
     void printPlatoons();
     void setPlatoonInformation(int platoonId, const PlatoonInfo& info);
     PlatoonInfo getPlatoonInformation(int platoonId) const;
@@ -90,6 +94,7 @@ public:
     VehicleToPlatoon vehToPlatoons;
     PlatoonInformation information;
     VehicleInformation vehicleInfo;
+    VehicleLeader vehicleToLeaderPosition;
 };
 
 } // namespace plexe

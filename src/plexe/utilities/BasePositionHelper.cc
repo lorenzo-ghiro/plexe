@@ -94,15 +94,9 @@ void BasePositionHelper::setVariablesAfterFormationChange()
     // automatically tell sumo about the platoon formation
     // TODO: this will not work if the traffic manager has not a platooningVType parameter
     // OR in case of heterogeneous platoons
-    if (isLeader()) {
-        cModule *traffic = findModuleByPath("<root>.traffic");
-        std::string platooningVType = traffic->par("platooningVType");
-        for (int i = 1; i < getPlatoonSize(); i++) {
-            std::stringstream ss;
-            ss << platooningVType << "." << getMemberId(i);
-            plexeTraciVehicle->addPlatoonMember(ss.str(), i);
-        }
-    }
+    cModule *traffic = findModuleByPath("<root>.traffic");
+    std::string platooningVType = traffic->par("platooningVType");
+    plexeTraciVehicle->setPlatoonFormation(platooningVType, formation);
     colorVehicle();
 }
 
