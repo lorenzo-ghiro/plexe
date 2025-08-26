@@ -27,4 +27,6 @@ moduleinterface BaseApp extends IBaseApplLayer
     parameters:
         @display("i=block/app2");
         @class(plexe::BaseApp);
+        bool enableLogging;
+        double loggingInterval @unit(s);
 }

@@ -17,7 +17,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-
+#define PYBIND11_EXPORT __attribute__((visibility("default")))
 #include "plexe/apps/BaseApp.h"
 
 #include "veins/modules/messages/BaseFrame1609_4_m.h"
@@ -40,21 +40,26 @@ void BaseApp::initialize(int stage)
     BaseApplLayer::initialize(stage);
 
     if (stage == 0) {
-        // set names for output vectors
-        // distance from front vehicle
-        distanceOut.setName("distance");
-        // relative speed w.r.t. front vehicle
-        relSpeedOut.setName("relativeSpeed");
-        // vehicle id
-        nodeIdOut.setName("nodeId");
-        // current speed
-        speedOut.setName("speed");
-        // vehicle position
-        posxOut.setName("posx");
-        posyOut.setName("posy");
-        // vehicle acceleration
-        accelerationOut.setName("acceleration");
-        controllerAccelerationOut.setName("controllerAcceleration");
+
+        enableLogging = par("enableLogging").boolValue();
+        if (enableLogging) {
+            // set names for output vectors
+            // distance from front vehicle
+            distanceOut.setName("distance");
+            // relative speed w.r.t. front vehicle
+            relSpeedOut.setName("relativeSpeed");
+            // vehicle id
+            nodeIdOut.setName("nodeId");
+            // current speed
+            speedOut.setName("speed");
+            // vehicle position
+            posxOut.setName("posx");
+            posyOut.setName("posy");
+            // vehicle acceleration
+            accelerationOut.setName("acceleration");
+            controllerAccelerationOut.setName("controllerAcceleration");
+        }
+        loggingInterval = par("loggingInterval").doubleValue();
     }
 
     if (stage == 1) {
@@ -76,6 +81,7 @@ void BaseApp::initialize(int stage)
         // init statistics collection. round to 0.1 seconds
         SimTime rounded = SimTime(floor(simTime().dbl() * 1000 + 100), SIMTIME_MS);
         scheduleAt(rounded, recordData);
+
     }
 }
 
@@ -116,15 +122,18 @@ void BaseApp::logVehicleData(bool crashed)
         stopSimulation = new cMessage("stopSimulation");
         scheduleAt(simTime() + SimTime(1, SIMTIME_MS), stopSimulation);
     }
-    // write data to output files
-    distanceOut.record(distance);
-    relSpeedOut.record(relSpeed);
-    nodeIdOut.record(myId);
-    accelerationOut.record(data.acceleration);
-    controllerAccelerationOut.record(data.u);
-    speedOut.record(data.speed);
-    posxOut.record(data.positionX);
-    posyOut.record(data.positionY);
+    if (enableLogging) {
+        // write data to output files
+       distanceOut.record(distance);
+       relSpeedOut.record(relSpeed);
+       nodeIdOut.record(myId);
+       accelerationOut.record(data.acceleration);
+       controllerAccelerationOut.record(data.u);
+       speedOut.record(data.speed);
+       posxOut.record(data.positionX);
+       posyOut.record(data.positionY);
+    }
+
 }
 
 void BaseApp::handleLowerControl(cMessage* msg)
@@ -156,15 +165,8 @@ void BaseApp::handleSelfMsg(cMessage* msg)
 void BaseApp::onPlatoonBeacon(const PlatooningBeacon* pb)
 {
     if (positionHelper->isInSamePlatoon(pb->getVehicleId())) {
-        // if the message comes from the leader
-        if (pb->getVehicleId() == positionHelper->getLeaderId()) {
-            plexeTraciVehicle->setLeaderVehicleData(pb->getControllerAcceleration(), pb->getAcceleration(), pb->getSpeed(), pb->getPositionX(), pb->getPositionY(), pb->getTime());
-        }
-        // if the message comes from the vehicle in front
-        if (pb->getVehicleId() == positionHelper->getFrontId()) {
-            plexeTraciVehicle->setFrontVehicleData(pb->getControllerAcceleration(), pb->getAcceleration(), pb->getSpeed(), pb->getPositionX(), pb->getPositionY(), pb->getTime());
-        }
-        // send data about every vehicle to the CACC. this is needed by the consensus controller
+        // send data about every vehicle to the CACC controllers
+        // controllers will then pick the data of vehicles they are interested in
         struct VEHICLE_DATA vehicleData;
         vehicleData.index = positionHelper->getMemberPosition(pb->getVehicleId());
         vehicleData.acceleration = pb->getAcceleration();
@@ -177,10 +179,20 @@ void BaseApp::onPlatoonBeacon(const PlatooningBeacon* pb)
         vehicleData.speedX = pb->getSpeedX();
         vehicleData.speedY = pb->getSpeedY();
         vehicleData.angle = pb->getAngle();
-        // send information to CACC
+        // send information to CACC controllers
         plexeTraciVehicle->setVehicleData(&vehicleData);
     }
     delete pb;
+}
+
+void BaseApp::activeAttack(const char* type)
+{
+    protocol->activeAttack(type);
+}
+
+void BaseApp::setReplayIndex(int index)
+{
+    protocol->setReplayIndex(index);
 }
 
 } // namespace plexe

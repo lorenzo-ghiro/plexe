@@ -25,6 +25,7 @@
 #include "veins/modules/mobility/traci/TraCIMobility.h"
 
 #include "plexe/CC_Const.h"
+#include "plexe/utilities/utilities.h"
 #include "plexe/messages/PlatooningBeacon_m.h"
 #include "plexe/mobility/CommandInterface.h"
 #include "plexe/utilities/BasePositionHelper.h"
@@ -53,7 +54,8 @@ protected:
 
     // lower layer protocol
     BaseProtocol* protocol;
-
+    bool enableLogging;
+    double loggingInterval;
     /**
      * Log data about vehicle
      */
@@ -89,6 +91,16 @@ public:
      * @param destination id of the destination
      */
     void sendFrame(cPacket* msg, int destination);
+
+    /**
+     * Active an attack type in the protocol
+     */
+    virtual void activeAttack(const char* type);
+
+    /**
+     * Set the index used to the data replay attack
+     */
+    virtual void setReplayIndex(int index);
 
 protected:
     virtual void handleLowerMsg(cMessage* msg) override;

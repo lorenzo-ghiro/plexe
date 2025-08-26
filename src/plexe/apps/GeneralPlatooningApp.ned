@@ -33,6 +33,8 @@ parameters:
     string mergeManeuver;
 
     int headerLength @unit("bit") = default(0 bit);
+    bool enableLogging = default(true);
+    double loggingInterval @unit(s) = default(0.1s);
     @display("i=block/app2");
     @class(plexe::GeneralPlatooningApp);
 
