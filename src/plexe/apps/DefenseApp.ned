@@ -98,5 +98,5 @@ simple DefenseApp extends BBaseApp
         @statistic[pe](source="pe"; record=vector,stats?,timeavg?);
 
         @display("i=block/app2");
-        @class(plexe::AIDefenseApp);
+        @class(plexe::DefenseApp);
 }
