@@ -1,10 +1,17 @@
 from tensorflow.keras.models import load_model
-from paimds_offline import enable_mc_dropout
 import pickle
 import numpy as np
 from scipy.stats import t
+import tensorflow as tf
 import code  # code.interact(local=dict(globals(), **locals()))
 
+def enable_mc_dropout(model):
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.Dropout):
+            layer.trainable = True
+        else:
+            layer.trainable = False
+    return model
 
 class Aimds:
     def __init__(self, model_path, scaler_path, MCdropRep, MCdropCU):
