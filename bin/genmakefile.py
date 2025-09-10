@@ -115,8 +115,9 @@ for s in cfg.sections():
         out_type = "Rdata"
         if cfg.has_option(s, "type"):
             out_type = cfg.get(s, "type")
-            if out_type not in ['csv', 'Rdata']:
-                err("output type should either be 'csv' or 'Rdata'")
+            supported = ['csv', 'Rdata', 'feather', 'parquet']
+            if out_type not in supported:
+                err("output type can be: " + ",".join(supported))
                 sys.exit(1)
         configs.append([cfg.get(s, "config"), cfg.get(s, "map"), cfg.get(s, "mapFile"), cfg.get(s, "prefix"), cfg.get(s, "out"), cfg.get(s, "merge"), out_type])
 
@@ -150,7 +151,7 @@ print("SCAVETOOL = opp_scavetool")
 print("# results location")
 print(("RESDIR = " + resultDir))
 print("# script for merging")
-print("MERGESCRIPT = merge.R")
+print("MERGESCRIPT = merge.py")
 print("")
 
 longer = get_longer(configs)
@@ -166,6 +167,8 @@ print("# vector index files and Rdata files")
 print("VCI = $(VECTOR:%.vec=%.vci)")
 print("RDATA = $(VECTOR:%.vec=%.Rdata)")
 print("CSV = $(VECTOR:%.vec=%.csv)")
+print("PAR = $(VECTOR:%.vec=%.parquet)")
+print("FHT = $(VECTOR:%.vec=%.feather)")
 
 print("")
 print("# all make targets")
@@ -193,14 +196,14 @@ for c in configs:
         print((c[PREFIX] + ".%." + c[OUTTYPE] + ": %.vec %.vci"))
         print(("\tgeneric-parser.R $< " + c[MAPFILE] + " " + c[MAP] + " " + c[PREFIX] + " " + c[OUTTYPE]))
     elif opp_version >= 6:
-        print((c[PREFIX] + ".%.csv: %.vec %.vci"))
-        print(("\tgeneric-parser.py $< " + c[MAPFILE] + " " + c[MAP] + " " + c[PREFIX] + " csv"))
-        if c[OUTTYPE] == "Rdata":
-            # if needed, csv to Rdata
-            print(
-                (c[PREFIX] + ".%." + c[OUTTYPE] + ": " + c[PREFIX] + ".%.csv"))
-            print("\tcsv-to-rdata.R $<")
-            print("\trm $<")
+        print((c[PREFIX] + ".%." + c[OUTTYPE] + ": %.vec %.vci"))
+        print(("\tgeneric_parser.py $< " + c[MAPFILE] + " " + c[MAP] + " " + c[PREFIX] + " " + c[OUTTYPE]))
+        #if c[OUTTYPE] == "Rdata":
+        #    # if needed, csv to Rdata
+        #    print(
+        #        (c[PREFIX] + ".%." + c[OUTTYPE] + ": " + c[PREFIX] + ".%.csv"))
+        #    print("\tcsv-to-rdata.R $<")
+        #    print("\trm $<")
     else:
         err("OMNeT++ version {} is not supported.".format(opp_version))
         sys.exit(1)
