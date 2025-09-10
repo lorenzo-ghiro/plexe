@@ -18,42 +18,18 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#include "SimplePlatooningBeaconing.h"
+package org.car2x.plexe.protocols;
 
-namespace plexe {
+import org.car2x.plexe.protocols.SimplePlatooningBeaconing;
 
-Define_Module(SimplePlatooningBeaconing);
-
-void SimplePlatooningBeaconing::initialize(int stage)
+//
+// Extends static beaconing for platooning adding chance to maliciously 
+// forge wrong beacons
+//
+simple MisbeProtocol  extends SimplePlatooningBeaconing
 {
-    BaseProtocol::initialize(stage);
+    parameters:
+        @display("i=block/network2");
+        @class(plexe::MisbeProtocol);
 
-    if (stage == 0) {
-        // random start time
-        if (beaconingInterval > 0) {
-            SimTime beginTime = SimTime(uniform(0.001, beaconingInterval));
-            scheduleAt(simTime() + beaconingInterval + beginTime, sendBeacon);
-        }
-    }
 }
-
-void SimplePlatooningBeaconing::handleSelfMsg(cMessage* msg)
-{
-
-    BaseProtocol::handleSelfMsg(msg);
-
-    if (msg == sendBeacon) {
-        sendPlatooningMessage(-1);
-        scheduleAt(simTime() + beaconingInterval, sendBeacon);
-    }
-}
-
-SimplePlatooningBeaconing::SimplePlatooningBeaconing()
-{
-}
-
-SimplePlatooningBeaconing::~SimplePlatooningBeaconing()
-{
-}
-
-} // namespace plexe
