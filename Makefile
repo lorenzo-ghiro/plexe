@@ -104,3 +104,17 @@ formatting:
 formatting-strict:
 	bin/plexe_format_code --strict src
 	bin/plexe_format_code --strict subprojects
+
+# adding pybinding
+PY_INCL := $(PY_INCLUDE)
+PYBIND_INCL := $(PYBIND)/include
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+	BASED_ON_OS := -undefined dynamic_lookup
+else
+	BASED_ON_OS := -fPIC
+endif
+
+CXXFLAGS += -I$(PY_INCL) -I$(PYBIND_INCL) -O3 -Wall -std=c++11 -Isrc
+LDFLAGS += -shared $(BASED_ON_OS)
