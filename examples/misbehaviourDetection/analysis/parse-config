@@ -1,0 +1,51 @@
+[DEFAULT]
+defaultMap = default
+file = map-config
+
+[params]
+resdir = ../results
+
+[config]
+config = Misbehavior4
+out = misbehavior4
+map    = %(defaultMap)s
+mapFile = %(file)s
+prefix = mis4
+merge = 1
+type = parquet
+
+#[config]
+#config = Misbehavior8
+#out = misbehavior8
+#map    = %(defaultMap)s
+#mapFile = %(file)s
+#prefix = mis8
+#merge = 1
+#type = csv
+#
+#[config]
+#config = Misbehavior16
+#out = misbehavior16
+#map    = %(defaultMap)s
+#mapFile = %(file)s
+#prefix = mis16
+#merge = 0
+#type = csv
+
+#[config]
+#config = TrafficAroundNoisyMisb
+#out = trafficAroundNoisyMisb
+#map = %(defaultMap)s
+#mapFile = %(file)s
+#prefix = tanm
+#merge = 1
+#type = parquet
+
+#[config]
+#config = TrafficAroundPlatoonMisb
+#out = trafficAroundPlatoonMisb
+#map = %(defaultMap)s
+#mapFile = %(file)s
+#prefix = tapm
+#merge = 1
+#type = parquet

@@ -1,0 +1,11 @@
+#default setup
+[default]
+module = Highway.node[*].appl
+names = aidaId:vector,senderId:vector,tl:vector,mdspl:vector,mdso:vector,lr:vector,cr:vector,lai:vector,cai:vector,muai:vector,CLai:vector,nblai:vector,norm_sum:vector,js:vector,ss:vector,ps:vector,arts:vector,jerk:vector,se:vector,pe:vector
+1 = configname
+2 = defense
+3 = misbehavior
+4 = idMisbehavior
+5 = MCdropRep
+6 = MCdropCU
+7 = rep
