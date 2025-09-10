@@ -203,6 +203,9 @@ struct VEHICLE_DATA {
 // perform a lane change for a whole platoon
 #define PAR_PLATOON_FIXED_LANE (parameter_prefix + "ccpfl")
 
+// enabling/disabling use of radar
+#define PAR_USE_RADAR (parameter_prefix + "ccur")
+
 } // namespace plexe
 
 #endif /* CC_CONST_H */

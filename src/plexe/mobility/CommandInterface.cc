@@ -388,5 +388,10 @@ unsigned int CommandInterface::Vehicle::getLanesCount()
     return (unsigned int) v;
 }
 
+void CommandInterface::Vehicle::useRadar(bool enable)
+{
+    veinsVehicle().setParameter(PAR_USE_RADAR, enable ? 1 : 0);
+}
+
 } // namespace traci
 } // namespace plexe

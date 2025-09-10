@@ -297,6 +297,12 @@ public:
          */
         unsigned int getLanesCount();
 
+       /**
+         * Activates or deactivates the use of the radar, so that it's possible
+         * to use the radar measures instead of the beacon's one
+         */
+        void useRadar(bool enable);
+
         veins::TraCICommandInterface::Vehicle veinsVehicle()
         {
             return {cifc->veinsCommandInterface, nodeId};
