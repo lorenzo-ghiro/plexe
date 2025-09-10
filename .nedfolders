@@ -3,4 +3,5 @@ examples/autolanechange
 examples/engine
 examples/human
 examples/joinManeuver
+examples/misbehaviourDetection
 examples/platooning
