@@ -64,3 +64,5 @@ endif
 ifeq ($(WITH_OSG), yes)
   OMNETPP_LIBS += $(OSG_LIBS)
 endif
+
+LIBS += $(shell python3-config --libs --embed)
